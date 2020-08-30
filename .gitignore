@@ -1,0 +1,7 @@
+build/
+game
+Makefile
+Session.vim
+CMakeCache.txt
+compile_commands.json
+CMakeFiles/
