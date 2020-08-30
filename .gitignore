@@ -5,3 +5,6 @@ Session.vim
 CMakeCache.txt
 compile_commands.json
 CMakeFiles/
+build
+.clangd
+cmake_install.cmake
