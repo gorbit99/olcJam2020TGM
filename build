@@ -1,1 +1,0 @@
-g++ -o game $(find ./src -type f -iname *.cpp -print) -lX11 -lGL -lpthread -lpng -lstdc++fs -std=c++17 -Wall -Werror
