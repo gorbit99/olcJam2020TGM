@@ -46,12 +46,16 @@ bool Game::OnUserCreate() {
     testBubble.play(soloud);
     testBubble.setBackgroundSprite(speechBubbleSprite);
 
-    currentMinigame = std::make_unique<ModeratingDiscordMinigame>(
-	    "res/minigames/discordModeration/bg.png",
-	    "res/minigames/discordModeration/pfp.png",
-	    "res/minigames/discordModeration/texts.png",
-	    "res/minigames/discordModeration/names.png",
-	    "res/minigames/discordModeration/report.png"
+    currentMinigame = std::make_unique<AnsweringCommentsMinigame>(
+	    "res/minigames/commentAnswering/bg.png",
+	    "res/minigames/commentAnswering/pfpMask.png",
+	    "res/minigames/commentAnswering/names.png",
+	    "res/minigames/commentAnswering/interactBar.png",
+	    "res/minigames/commentAnswering/reply.png",
+	    "res/minigames/commentAnswering/texts.png",
+	    "res/minigames/commentAnswering/javidPfpSmall.png",
+	    "res/minigames/commentAnswering/pressA.png",
+	    "res/minigames/commentAnswering/pressD.png"
 	    );
     return true;
 }

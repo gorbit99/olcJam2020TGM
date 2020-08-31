@@ -7,6 +7,7 @@
 #include "SpeechBubble.h"
 #include "Minigame.h"
 #include "ModeratingDiscordMinigame.h"
+#include "AnsweringCommentsMinigame.h"
 
 enum class CurrentState {
     MENU,
