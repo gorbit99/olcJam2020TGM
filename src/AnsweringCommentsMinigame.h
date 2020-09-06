@@ -19,19 +19,28 @@ public:
 	    std::string pressAPath,
 	    std::string pressDPath);
     void start() override;
-    bool tick(olc::PixelGameEngine *pge) override;
+    bool tick(olc::PixelGameEngine *pge, std::int64_t &internetPoints) override;
     void drawSelf(olc::PixelGameEngine *pge) override;
 private:
-    std::unique_ptr<olc::Renderable> bgSprite;
-    std::unique_ptr<olc::Renderable> pfpMaskSprite;
-    std::unique_ptr<olc::Renderable> nameSprites;
-    std::unique_ptr<olc::Renderable> interactSprite;
-    std::unique_ptr<olc::Renderable> replySprite;
-    std::unique_ptr<olc::Renderable> textSprites;
-    std::unique_ptr<olc::Renderable> javidPfpSmallSprite;
-    std::unique_ptr<olc::Renderable> pressASprite;
-    std::unique_ptr<olc::Renderable> pressDSprite;
-    std::vector<std::tuple<std::unique_ptr<olc::Renderable>, int, int, bool, int, size_t>> comments;
+    olc::Renderable bgSprite;
+    olc::Renderable pfpMaskSprite;
+    olc::Renderable nameSprites;
+    olc::Renderable interactSprite;
+    olc::Renderable replySprite;
+    olc::Renderable textSprites;
+    olc::Renderable javidPfpSmallSprite;
+    olc::Renderable pressASprite;
+    olc::Renderable pressDSprite;
+    struct Comment {
+	Comment(olc::Renderable sprite, int name, int text, bool answered, int answerText, size_t id);
+	olc::Renderable sprite;
+	int name;
+	int text;
+	bool answered;
+	int answerText;
+	size_t id;
+    };
+    std::vector<Comment> comments;
     float nextCommentTimer;
     std::mt19937 engine;
     std::uniform_real_distribution<float> nextCommentDistrib{1.0f, 2.0f};
@@ -44,6 +53,7 @@ private:
     float adAnimTimer = 0.0f;
     size_t maxId = 0;
     bool aPressed = false;
+    float titleFadeoutTimer = 0.0f;
 };
 
 #endif

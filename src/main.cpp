@@ -7,7 +7,7 @@
 
 int main() {
     Game game;
-    if (game.Construct(320, 240, 2, 2)) {
+    if (game.Construct(320, 240, 2, 2, false, true)) {
 	game.Start();
     }
     return 0;

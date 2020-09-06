@@ -12,7 +12,8 @@
 enum class CurrentState {
     MENU,
     FIRST_PHASE,
-    MACHINE
+    MACHINE,
+    WIN
 };
 
 class Game : public olc::PixelGameEngine {
@@ -22,42 +23,57 @@ public:
     bool OnUserUpdate(float fElapsedTime) override;
     bool OnUserDestroy() override;
 private:
-    SkillTree skillTree;
     StatusBar statusBar;
-    CurrentState state = CurrentState::MACHINE;
+    CurrentState state = CurrentState::MENU;
     SoLoud::Soloud soloud;
     std::shared_ptr<olc::Renderable> speechBubbleSprite;
     float armSwitchTimer = 0.0f;
     float headBobTimer = 0.0f;
 
     //Menu Variables
-    SpeechBubble testBubble{"Hello and welcome to\npart one of a new series...", "res/javid.wav", {70, ScreenHeight() - 64}, {ScreenWidth() - 12, 64}};
+    bool started = false;
+    float menuFadeTimer = 0.0f;
     
     //First Phase Variables
     bool aPressed = false;
-    std::unique_ptr<olc::Renderable> aButtonSprite;
-    std::unique_ptr<olc::Renderable> aButtonPressedSprite;
-    std::unique_ptr<olc::Renderable> dButtonSprite;
-    std::unique_ptr<olc::Renderable> dButtonPressedSprite;
+    olc::Renderable aButtonSprite;
+    olc::Renderable aButtonPressedSprite;
+    olc::Renderable dButtonSprite;
+    olc::Renderable dButtonPressedSprite;
 
-    std::unique_ptr<olc::Renderable> javidBaseSprite;
-    std::unique_ptr<olc::Renderable> javidLArmDownSprite;
-    std::unique_ptr<olc::Renderable> javidLArmUpSprite;
-    std::unique_ptr<olc::Renderable> javidRArmDownSprite;
-    std::unique_ptr<olc::Renderable> javidRArmUpSprite;
+    olc::Renderable javidBaseSprite;
+    olc::Renderable javidLArmDownSprite;
+    olc::Renderable javidLArmUpSprite;
+    olc::Renderable javidRArmDownSprite;
+    olc::Renderable javidRArmUpSprite;
 
     std::uint32_t pressCounter = 0;
+
+    SpeechBubble currentSpeechBubble;
+    int cutsceneState = 0;
+    float fadeoutTimer = 0.0f;
     //Machine Variables
-    std::unique_ptr<olc::Renderable> robotBaseSprite0;
-    std::unique_ptr<olc::Renderable> robotBaseSprite1;
-    std::unique_ptr<olc::Renderable> robotLArmDownSprite;
-    std::unique_ptr<olc::Renderable> robotLArmUpSprite;
-    std::unique_ptr<olc::Renderable> robotRArmDownSprite;
-    std::unique_ptr<olc::Renderable> robotRArmUpSprite;
+    SkillTree skillTree;
+    olc::Renderable robotBaseSprite0;
+    olc::Renderable robotBaseSprite1;
+    olc::Renderable robotLArmDownSprite;
+    olc::Renderable robotLArmUpSprite;
+    olc::Renderable robotRArmDownSprite;
+    olc::Renderable robotRArmUpSprite;
+    olc::Renderable ipSprite;
+    std::vector<olc::Renderable> fastHandSprites;
     float armSwitchPeriod = 1.0f;
     float headBobPeriod = 1.0f;
-    std::uint64_t internetPoints = 0;
-    std::unique_ptr<Minigame> currentMinigame;
+    std::int64_t internetPoints = 0;
+    std::shared_ptr<Minigame> currentMinigame;
+    std::vector<std::shared_ptr<Minigame>> minigames;
+    float minigameTimer = 0.0f;
+    int curMinigameId = -1;
+    std::mt19937 engine;
+    std::uniform_int_distribution<int> minigameDistrib{0, 1};
+    float winFadeTimer = 0.0f;
+    //Win Variables
+    olc::Renderable background;
 };
 
 #endif

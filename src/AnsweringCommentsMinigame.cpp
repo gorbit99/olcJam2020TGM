@@ -9,66 +9,59 @@ AnsweringCommentsMinigame::AnsweringCommentsMinigame(std::string bgPath,
 	std::string javidPfpSmallPath,
 	std::string pressAPath,
 	std::string pressDPath) {
-    bgSprite = std::make_unique<olc::Renderable>();
-    pfpMaskSprite = std::make_unique<olc::Renderable>();
-    nameSprites = std::make_unique<olc::Renderable>();
-    interactSprite = std::make_unique<olc::Renderable>();
-    replySprite = std::make_unique<olc::Renderable>();
-    textSprites = std::make_unique<olc::Renderable>();
-    javidPfpSmallSprite = std::make_unique<olc::Renderable>();
-    pressASprite = std::make_unique<olc::Renderable>();
-    pressDSprite = std::make_unique<olc::Renderable>();
-    bgSprite->Load(bgPath);
-    pfpMaskSprite->Load(pfpMaskPath);
-    nameSprites->Load(namesPath);
-    interactSprite->Load(interactPath);
-    replySprite->Load(replyPath);
-    textSprites->Load(textsPath);
-    javidPfpSmallSprite->Load(javidPfpSmallPath);
-    pressASprite->Load(pressAPath);
-    pressDSprite->Load(pressDPath);
+    bgSprite.Load(bgPath);
+    pfpMaskSprite.Load(pfpMaskPath);
+    nameSprites.Load(namesPath);
+    interactSprite.Load(interactPath);
+    replySprite.Load(replyPath);
+    textSprites.Load(textsPath);
+    javidPfpSmallSprite.Load(javidPfpSmallPath);
+    pressASprite.Load(pressAPath);
+    pressDSprite.Load(pressDPath);
     engine = std::mt19937(time(nullptr));
 }
 
 void AnsweringCommentsMinigame::start() {
+    titleFadeoutTimer = 0.0f;
     nextCommentTimer = nextCommentDistrib(engine);
 }
 
-bool AnsweringCommentsMinigame::tick(olc::PixelGameEngine *pge) {
+bool AnsweringCommentsMinigame::tick(olc::PixelGameEngine *pge, std::int64_t &internetPoints) {
+    titleFadeoutTimer += pge->GetElapsedTime();
     if (nextCommentTimer <= 0) {
 	nextCommentTimer = nextCommentDistrib(engine);
-	std::unique_ptr<olc::Renderable> newPfp = std::make_unique<olc::Renderable>();
-	newPfp->Create(pfpMaskSprite->Sprite()->width, pfpMaskSprite->Sprite()->height);
-	for (size_t y = 0; y < newPfp->Sprite()->height; y++) {
-	    for (size_t x = 0; x < newPfp->Sprite()->width; x++) {
-		if (pfpMaskSprite->Sprite()->GetPixel(x, y) == olc::WHITE) {
-		    newPfp->Sprite()->SetPixel(x, y, olc::Pixel{
+	olc::Renderable newPfp;
+	newPfp.Create(pfpMaskSprite.Sprite()->width, pfpMaskSprite.Sprite()->height);
+	for (size_t y = 0; y < newPfp.Sprite()->height; y++) {
+	    for (size_t x = 0; x < newPfp.Sprite()->width; x++) {
+		if (pfpMaskSprite.Sprite()->GetPixel(x, y) == olc::WHITE) {
+		    newPfp.Sprite()->SetPixel(x, y, olc::Pixel{
 			    colorDistrib(engine),
 			    colorDistrib(engine),
 			    colorDistrib(engine)
 			    });
 		} else {
-		    newPfp->Sprite()->SetPixel(x, y, olc::BLANK);
+		    newPfp.Sprite()->SetPixel(x, y, olc::BLANK);
 		}
 	    }
 	}
-	newPfp->Decal()->Update();
+	newPfp.Decal()->Update();
 	comments.insert(
 		comments.begin(),
-		std::make_tuple(std::move(newPfp),
+		Comment {std::move(newPfp),
 		    nameDistrib(engine),
 		    textDistrib(engine),
 		    false,
 		    textDistrib(engine),
-		    maxId)
+		    maxId}
 		);
 	maxId++;
 	if (comments.size() > 6) {
 	    const auto &last = comments.back();
-	    if (!std::get<3>(last)) {
-		//TODO take away points
+	    if (!last.answered) {
+		internetPoints -= 50;
 	    }
-	    if (std::get<5>(last) == selectedId) {
+	    if (last.id == selectedId) {
 		aPressed = false;
 		selectedId = -1;
 		selectedProgress = 0;
@@ -88,22 +81,22 @@ bool AnsweringCommentsMinigame::tick(olc::PixelGameEngine *pge) {
 	    if (selectedProgress >= 1.0f) {
 		selectedProgress = 0;
 		selectedId = -1;
-		//TODO give points
+		internetPoints += 200;
 	    }
 	}
     } else {
 	if (pge->GetMouse(0).bPressed) {
 	    float i = 0;
 	    for (auto &comment : comments) {
-		if (std::get<3>(comment)) {
+		if (comment.answered) {
 		    i += 0.5f;
 		} else {
 		    const auto mousePos = pge->GetMousePos();
 		    if (mousePos.x >= 123 && mousePos.x < 141 &&
 			    mousePos.y >= 83 + i * 20 && mousePos.y < 88 + i * 20 &&
 			    mousePos.y <= pge->ScreenHeight() - 64) {
-			selectedId = std::get<5>(comment);
-			std::get<3>(comment) = true;
+			selectedId = comment.id;
+			comment.answered = true;
 		    }
 		}
 		i += 1.0f;
@@ -119,41 +112,59 @@ void AnsweringCommentsMinigame::drawSelf(olc::PixelGameEngine *pge) {
 	adAnimCur = adAnimCur == 0 ? 1 : 0;
 	adAnimTimer -= 0.25f;
     }
-    pge->DrawDecal({64, 0}, bgSprite->Decal());
+    pge->DrawSprite({64, 0}, bgSprite);
     float i = 0;
     for (const auto &comment : comments) {
-	pge->DrawDecal({90.0f, 70.0f + i * 20}, std::get<0>(comment)->Decal());
-	pge->DrawPartialDecal({100.0f, 70.0f + i * 20},
-		nameSprites->Decal(), {0, float(std::get<1>(comment) * 5)}, {50, 5});
-	pge->DrawPartialDecal({100.0f, 76.0f + i * 20},
-		textSprites->Decal(), {0, float(std::get<2>(comment) * 5)}, {50, 5});
-	pge->DrawDecal({100.0f, 83.0f + i * 20}, interactSprite->Decal());
-	if (std::get<3>(comment)) {
-	    pge->DrawDecal({100.0f, 90.0f + i * 20}, javidPfpSmallSprite->Decal());
-	    pge->DrawPartialDecal({105.0f, 90.0f + i * 20},
-		nameSprites->Decal(), {0, 0}, {50, 5});
-	    if (std::get<5>(comment) == selectedId) {
-		pge->DrawPartialDecal({105.0f, 95.0f + i * 20},
-		    textSprites->Decal(),
-		    {0, float(std::get<4>(comment) * 5)},
-		    {50 * selectedProgress, 5});
-		pge->DrawDecal(
-			{150.0f, 90.0f + i * 20},
-			adAnimCur == 0 ? pressASprite->Decal() : pressDSprite->Decal()
+	pge->DrawSprite({90, int(70 + i * 20)}, comment.sprite);
+	pge->DrawPartialSprite({100, int(70 + i * 20)},
+		nameSprites, {0, comment.name * 5}, {50, 5});
+	pge->DrawPartialSprite({100, int(76 + i * 20)},
+		textSprites, {0, comment.text * 5}, {50, 5});
+	pge->DrawSprite({100, int(83 + i * 20)}, interactSprite);
+	if (comment.answered) {
+	    pge->DrawSprite({100, int(90 + i * 20)}, javidPfpSmallSprite);
+	    pge->DrawPartialSprite({105, int(90 + i * 20)},
+		nameSprites, {0, 0}, {50, 5});
+	    if (comment.id == selectedId) {
+		pge->DrawPartialSprite({105, int(95 + i * 20)},
+		    textSprites,
+		    {0, comment.answerText * 5},
+		    {int(50 * selectedProgress), 5});
+		pge->DrawSprite(
+			{150, int(90 + i * 20)},
+			adAnimCur == 0 ? pressASprite : pressDSprite
 			);
 	    } else {
-		pge->DrawPartialDecal({105.0f, 95.0f + i * 20},
-		    textSprites->Decal(),
-		    {0, float(std::get<4>(comment) * 5)},
+		pge->DrawPartialSprite({105, int(95 + i * 20)},
+		    textSprites,
+		    {0, comment.answerText * 5},
 		    {50, 5});
 	    }
 	    i += 0.5f;
 	} else if (selectedId == -1) {
-	    pge->DrawDecal({100.0f, 83.0f + i * 20}, replySprite->Decal());
+	    pge->DrawSprite({100, int(83 + i * 20)}, replySprite);
 	}
 	i += 1.0f;
     }
-    pge->FillRectDecal({64, float(pge->ScreenHeight() - 64)},
-	    {float(pge->ScreenWidth() - 64), 64},
+    pge->FillRect({64, pge->ScreenHeight() - 64},
+	    {pge->ScreenWidth() - 64, 64},
 	    olc::BLACK);
+    if (titleFadeoutTimer <= 2.0f) {
+	pge->DrawStringDecal(
+		olc::vf2d{pge->ScreenWidth() / 2.0f + 32, pge->ScreenHeight() / 2.0f - 32} -
+		pge->GetTextSize("Answer Comments!") / 2,
+		"Answer Comments!",
+		olc::RED);
+    }
+}
+
+AnsweringCommentsMinigame::Comment::Comment(olc::Renderable sprite,
+	int name,
+	int text,
+	bool answered,
+	int answerText,
+	size_t id)
+    : name{name}, text{text}, answered{answered}, answerText{answerText}, id{id}
+{
+    this->sprite = std::move(sprite);
 }

@@ -10,15 +10,16 @@
 
 class SpeechBubble {
 public:
+    SpeechBubble() = default;
     SpeechBubble(std::string text,
 	    std::string soundPath,
 	    olc::vi2d position,
-	    olc::vi2d scale);
+	    olc::vi2d scale,
+	    std::shared_ptr<olc::Renderable> sprite);
     void play(SoLoud::Soloud &soloud);
     void tick(float fElapsedTime);
     void drawSelf(olc::PixelGameEngine *pge);
     float getTimePastEnd();
-    void setBackgroundSprite(std::shared_ptr<olc::Renderable> sprite);
 private:
     std::string curText;
     std::shared_ptr<olc::Renderable> sprite;

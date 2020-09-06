@@ -3,8 +3,9 @@
 SpeechBubble::SpeechBubble(std::string text,
 	std::string soundPath,
 	olc::vi2d position,
-	olc::vi2d scale) 
-    : curText{text}, position{position}, scale{scale}
+	olc::vi2d scale,
+	std::shared_ptr<olc::Renderable> sprite) 
+    : curText{text}, position{position}, scale{scale}, sprite{sprite}
 {
     soundSample.load(soundPath.c_str());
 }
@@ -50,8 +51,4 @@ void SpeechBubble::drawSelf(olc::PixelGameEngine *pge) {
 
 float SpeechBubble::getTimePastEnd() {
     return std::max(0.0, timeElapsed - soundSample.getLength());
-}
-
-void SpeechBubble::setBackgroundSprite(std::shared_ptr<olc::Renderable> sprite) {
-    this->sprite = sprite;
 }

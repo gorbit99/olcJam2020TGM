@@ -565,11 +565,14 @@ namespace olc
 	public:
 		Renderable() = default;
 		virtual ~Renderable() = default;
+		Renderable(Renderable &&other) = default;
+		olc::Renderable &operator=(olc::Renderable &&other) = default;
 		olc::rcode Load(const std::string& sFile, ResourcePack* pack = nullptr);
 		void Create(uint32_t width, uint32_t height);
 		olc::Decal* Decal() const;
 		olc::Sprite* Sprite() const;
-
+		operator olc::Decal *() const;
+		operator olc::Sprite *() const;
 	private:
 		std::unique_ptr<olc::Sprite> pSprite = nullptr;
 		std::unique_ptr<olc::Decal> pDecal = nullptr;
@@ -1200,6 +1203,14 @@ namespace olc
 
 	olc::Sprite* Renderable::Sprite() const
 	{ return pSprite.get(); }
+
+	Renderable::operator olc::Decal *() const {
+	    return Decal();
+	}
+
+	Renderable::operator olc::Sprite *() const {
+	    return Sprite();
+	}
 
 	// O------------------------------------------------------------------------------O
 	// | olc::ResourcePack IMPLEMENTATION                                             |
